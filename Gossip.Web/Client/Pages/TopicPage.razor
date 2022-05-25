@@ -1,0 +1,64 @@
+﻿@page "/topic"
+@inject HttpClient Http
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using Topic = Gossip.Core.Topic;
+
+<PageTitle>Topic</PageTitle>
+<EditForm Model="@topicID" OnValidSubmit="@CreateTopic">
+    <div class="col-12 row">
+        <label class="col-2 font-weight-bold">topic ID: </label>
+        <InputText class="form-control col-3" @bind-Value="topicID.ID" placeholder="topic ID" />
+        <button type="submit">Create Topic</button>
+    </div>
+</EditForm>
+
+@if(topics == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <p1>all topics</p1>
+<table class="table">
+        <thead>
+            <tr>
+                <th>topic ID</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var topic in topics)
+            {
+                <tr>
+                    <td>@topic.ID</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private TopicID topicID = new TopicID();
+    private IEnumerable<Topic> topics { get; set; }
+
+    private async Task GetAllTopics()
+    {
+        this.topics = await Http.GetFromJsonAsync<IEnumerable<Topic>>($"Topic/all");
+    }
+
+    protected async override Task OnInitializedAsync()
+    {
+        await GetAllTopics();
+        await base.OnInitializedAsync();
+    }
+
+    private async Task CreateTopic()
+    {
+        await Http.PostAsync($"Topic/{topicID.ID}", null);
+    }
+
+    private class TopicID
+    {
+        public string ID { get; set; }
+    }
+}
