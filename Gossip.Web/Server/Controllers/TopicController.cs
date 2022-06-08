@@ -2,6 +2,7 @@
 using Gossip.Web.Server.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Gossip.Web.Server.Controllers
 {
@@ -74,7 +75,17 @@ namespace Gossip.Web.Server.Controllers
                 return this.NotFound($"can't find topic with {topicId}");
             }
 
-            var comments = this.gossip.Comments.Where(c => c.Topic.ID == topicId && c.Section == section);
+            var comments = this.gossip.Comments.Include(c => c.CreatedBy).Where(c => c.Topic.ID == topicId && c.Section == section);
+
+            foreach(var comment in comments)
+            {
+                comment.CreatedBy = new User
+                {
+                    Id = comment.CreatedBy.Id,
+                    AvatarUrl = comment.CreatedBy.AvatarUrl,
+                };
+            };
+
             return this.Ok(comments);
         }
 

@@ -228,7 +228,8 @@ namespace Gossip.Web.Server.Migrations
                 name: "Comments",
                 columns: table => new
                 {
-                    ID = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ID = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     CreatedTimestampInSeconds = table.Column<long>(type: "bigint", nullable: false),
                     Content = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
@@ -259,7 +260,7 @@ namespace Gossip.Web.Server.Migrations
                     CreatedTimestampInSeconds = table.Column<long>(type: "bigint", nullable: false),
                     IsLike = table.Column<bool>(type: "bit", nullable: false),
                     CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    CommentID = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    CommentID = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -286,7 +287,7 @@ namespace Gossip.Web.Server.Migrations
                     CreatedWhenTimestampInSecond = table.Column<long>(type: "bigint", nullable: false),
                     Content = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    CommentID = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CommentID = table.Column<long>(type: "bigint", nullable: false),
                     Section = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>

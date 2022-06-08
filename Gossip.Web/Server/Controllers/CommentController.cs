@@ -2,6 +2,7 @@
 using Gossip.Web.Server.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Gossip.Web.Server.Controllers
 {
@@ -14,21 +15,6 @@ namespace Gossip.Web.Server.Controllers
         public CommentController(GossipContext context)
         {
             this.gossip = context;
-        }
-
-        [HttpGet]
-        [Route("get")]
-        [Produces("application/json")]
-        public async Task<IActionResult> GetComment(string commentId)
-        {
-            if((await this.gossip.Comments.FindAsync(commentId)) is Comment comment)
-            {
-                return this.Ok(comment);
-            }
-            else
-            {
-                return this.NotFound($"can't find comment with {commentId}");
-            }
         }
 
         [HttpPost]
@@ -79,7 +65,7 @@ namespace Gossip.Web.Server.Controllers
         [HttpGet]
         [Route("delete")]
         [Produces("application/json")]
-        public async Task<IActionResult> DeleteCommentAsync(string commentId)
+        public async Task<IActionResult> DeleteCommentAsync(long commentId)
         {
             var comment = await this.gossip.Comments.FindAsync(commentId);
             if(comment is Comment)
@@ -96,7 +82,7 @@ namespace Gossip.Web.Server.Controllers
         [HttpGet]
         [Route("replies")]
         [Produces("application/json")]
-        public async Task<IActionResult> GetRepliesAsync(string commentId, int section)
+        public async Task<IActionResult> GetRepliesAsync(long commentId, int section)
         {
             var comment = await this.gossip.Comments.FindAsync(commentId);
             if(comment is null)
@@ -104,13 +90,24 @@ namespace Gossip.Web.Server.Controllers
                 return this.NotFound($"comment {commentId} not found");
             }
 
-            var replies = this.gossip.Replies.Where(r => r.Comment.ID == commentId && r.Section == section);
+            var replies = this.gossip.Replies
+                            .Include(r => r.CreatedBy)
+                            .Where(r => r.Comment.ID == commentId && r.Section == section);
+
+            foreach (var reply in replies)
+            {
+                reply.CreatedBy = new User
+                {
+                    Id = reply.CreatedBy.Id,
+                    AvatarUrl = reply.CreatedBy.AvatarUrl,
+                };
+            };
             return this.Ok(replies);
         }
 
         [HttpGet]
         [Route("replies/count")]
-        public async Task<IActionResult> GetRepliesCount(string commentId)
+        public async Task<IActionResult> GetRepliesCount(long commentId)
         {
             var comment = await this.gossip.Comments.FindAsync(commentId);
             if (comment is null)
@@ -125,7 +122,7 @@ namespace Gossip.Web.Server.Controllers
         [HttpPost]
         [Authorize]
         [Route("upvote/create")]
-        public async Task<IActionResult> CreateUpvoteAsync(string commentId)
+        public async Task<IActionResult> CreateUpvoteAsync(long commentId)
         {
             var userId = this.User.Identity!.Name;
             var comment = await this.gossip.Comments.FindAsync(commentId);
@@ -163,7 +160,7 @@ namespace Gossip.Web.Server.Controllers
         [HttpPost]
         [Authorize]
         [Route("upvote/delete")]
-        public async Task<IActionResult> DeleteUpvoteAsync(string commentId)
+        public async Task<IActionResult> DeleteUpvoteAsync(long commentId)
         {
             var userId = this.User.Identity!.Name;
             var comment = await this.gossip.Comments.FindAsync(commentId);
@@ -187,6 +184,22 @@ namespace Gossip.Web.Server.Controllers
             }
 
             return this.Ok("not exist");
+        }
+
+        [HttpPost]
+        [Route("upvote/count")]
+        public async Task<IActionResult> CountUpvoteAsync(long commentId)
+        {
+            var comment = await this.gossip.Comments.FindAsync(commentId);
+
+            if (comment is null)
+            {
+                return this.NotFound($"comment {commentId} not found");
+            }
+
+            var count = this.gossip.Reacts.Where(r => r.IsLike == true && r.Comment.ID == commentId).Count();
+
+            return this.Ok(count);
         }
     }
 }

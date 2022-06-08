@@ -1,14 +1,18 @@
 using Gossip.Core;
 using Gossip.Web.Server.Data;
+using Gossip.Web.Server.Helper;
 using Gossip.Web.Server.Models;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-var topicConnection = builder.Configuration.GetConnectionString("TopicDBConnection");
+var topicConnection = builder.Configuration.GetConnectionString("GossipDBConnection");
 builder.Services.AddDbContext<GossipContext>(options => options.UseSqlServer(topicConnection));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
@@ -18,8 +22,29 @@ builder.Services.AddDefaultIdentity<User>(options => options.SignIn.RequireConfi
 builder.Services.AddIdentityServer()
     .AddApiAuthorization<User, GossipContext>();
 
-builder.Services.AddAuthentication()
-    .AddIdentityServerJwt();
+var appSettingsSection = builder.Configuration.GetSection("AppSettings");
+builder.Services.Configure<AppSettings>(appSettingsSection);
+
+var appSettings = appSettingsSection.Get<AppSettings>();
+var key = Encoding.ASCII.GetBytes(appSettings.Secret);
+
+builder.Services.AddAuthentication(x =>
+    {
+        x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer((option) =>
+    {
+        option.RequireHttpsMetadata = false;
+        option.SaveToken = true;
+        option.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters()
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key),
+            ValidateIssuer = false,
+            ValidateAudience = false
+        };
+    });
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();

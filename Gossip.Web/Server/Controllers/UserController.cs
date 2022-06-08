@@ -1,8 +1,15 @@
 ﻿using Gossip.Core;
 using Gossip.Web.Server.Data;
+using Gossip.Web.Server.Helper;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace Gossip.Web.Server.Controllers
 {
@@ -12,14 +19,15 @@ namespace Gossip.Web.Server.Controllers
     {
         private GossipContext gossip;
         private byte[] salt = new byte[32];
-
+        private AppSettings appSettings;
         public IClientRequestParametersProvider ClientRequestParametersProvider { get; }
 
 
-        public UserController(IClientRequestParametersProvider clientRequestParametersProvider, GossipContext topicContext)
+        public UserController(IClientRequestParametersProvider clientRequestParametersProvider, GossipContext topicContext, IOptions<AppSettings> appSettings)
         {
             ClientRequestParametersProvider = clientRequestParametersProvider;
             this.gossip = topicContext;
+            this.appSettings = appSettings.Value;
         }
 
         [HttpPost]
@@ -54,8 +62,27 @@ namespace Gossip.Web.Server.Controllers
             {
                 if(VerifyHashedPassword(user.PasswordHash, password))
                 {
-                    var parameters = ClientRequestParametersProvider.GetClientParameters(HttpContext, "IdentityServerSPA");
-                    return Ok(parameters);
+                    var tokenHandler = new JwtSecurityTokenHandler();
+                    var key = Encoding.ASCII.GetBytes(this.appSettings.Secret);
+                    var expires = DateTime.UtcNow.AddMinutes(30);
+                    var tokenDescriptor = new SecurityTokenDescriptor
+                    {
+                        Subject = new ClaimsIdentity(new Claim[]
+                        {
+                            new Claim(ClaimTypes.Name, nickName),
+                        }),
+                        Expires = expires,
+                        SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
+                    };
+                    var token = tokenHandler.CreateToken(tokenDescriptor);
+                    var tokenString = tokenHandler.WriteToken(token);
+
+                    return Ok(new
+                    {
+                        User = user,
+                        Token = tokenString,
+                        Expires = expires,
+                    });
                 }
                 else
                 {

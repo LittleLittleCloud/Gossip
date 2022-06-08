@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Gossip.Web.Server.Migrations
 {
     [DbContext(typeof(GossipContext))]
-    [Migration("20220608061913_Gossip_V0")]
-    partial class Gossip_V0
+    [Migration("20220608204151_Gossip_V1")]
+    partial class Gossip_V1
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -167,8 +167,11 @@ namespace Gossip.Web.Server.Migrations
 
             modelBuilder.Entity("Gossip.Core.Comment", b =>
                 {
-                    b.Property<string>("ID")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<long>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"), 1L, 1);
 
                     b.Property<string>("Content")
                         .IsRequired()
@@ -203,9 +206,8 @@ namespace Gossip.Web.Server.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"), 1L, 1);
 
-                    b.Property<string>("CommentID")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<long>("CommentID")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("CreatedById")
                         .HasColumnType("nvarchar(450)");
@@ -233,9 +235,8 @@ namespace Gossip.Web.Server.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ID"), 1L, 1);
 
-                    b.Property<string>("CommentID")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<long>("CommentID")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Content")
                         .IsRequired()
