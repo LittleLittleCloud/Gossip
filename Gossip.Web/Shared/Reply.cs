@@ -10,10 +10,14 @@ namespace Gossip.Core
     {
         public long ID { get; set; }
 
-        public long TimeStamp { get; set; }
+        public long CreatedWhenTimestampInSecond { get; set; }
 
         public string Content { get; set; }
 
         public User CreatedBy { get; set; }
+
+        public Comment Comment { get; set; }
+
+        public int Section { get; set; }
     }
 }

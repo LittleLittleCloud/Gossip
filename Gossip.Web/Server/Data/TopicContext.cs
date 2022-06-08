@@ -7,13 +7,19 @@ using Microsoft.Extensions.Options;
 
 namespace Gossip.Web.Server.Data
 {
-    public class TopicContext : DbContext
+    public class GossipContext : ApiAuthorizationDbContext<User>
     {
-        public TopicContext(DbContextOptions<TopicContext> options)
-            : base(options)
+        public GossipContext(DbContextOptions<GossipContext> options,
+            IOptions<OperationalStoreOptions> operationalStoreOptions) : base(options, operationalStoreOptions)
         {
         }
 
         public DbSet<Topic> Topics { get; set; }
+
+        public DbSet<Comment> Comments { get; set; }
+
+        public DbSet<Reply> Replies { get; set; }
+
+        public DbSet<Like> Reacts { get; set; }
     }
 }

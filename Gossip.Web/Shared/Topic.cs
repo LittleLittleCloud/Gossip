@@ -10,8 +10,8 @@ namespace Gossip.Core
     public class Topic
     {
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
-        public long ID { get; set; }
+        public string ID { get; set; }
 
-        public IEnumerable<Comment> Comments { get; set; }
+        public long CreatedTimestampInSeconds { get; set; }
     }
 }

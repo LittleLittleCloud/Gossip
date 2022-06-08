@@ -1,0 +1,30 @@
+﻿@using Gossip.Core
+<MudCard>
+    <MudCardHeader>
+        @Comment.CreatedBy.UserName
+    </MudCardHeader>
+    <MudCardContent>
+        <MudText>@Comment.Content</MudText>
+        <MudList>
+            <MudListItem Text="Reply">
+                <NestedList>
+                    @foreach(var reply in @Comment.Replys)
+                {
+                    var txt = reply.Content;
+                    <MudListItem Text="@txt" />
+                }
+                </NestedList>
+            </MudListItem>
+        </MudList>
+    </MudCardContent>
+    <MudCardActions>
+        <MudIconButton ButtonType=ButtonType.Button>Edit</MudIconButton>
+        <MudIconButton ButtonType=ButtonType.Button>Delete</MudIconButton>
+    </MudCardActions>
+</MudCard>
+@code {
+    [Parameter]
+    public Comment Comment {get; set;}
+
+
+}

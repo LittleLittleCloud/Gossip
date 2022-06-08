@@ -3,6 +3,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @using Topic = Gossip.Core.Topic;
+@using Gossip.Core
 
 <PageTitle>Topic</PageTitle>
 <EditForm Model="@topicID" OnValidSubmit="@CreateTopic">
@@ -19,35 +20,57 @@
 }
 else
 {
-    <p1>all topics</p1>
-<table class="table">
-        <thead>
-            <tr>
-                <th>topic ID</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var topic in topics)
+    <div class="topic-table">
+        <MudExpansionPanels MultiExpansion="true">
+            @foreach(var topic in topics)
             {
-                <tr>
-                    <td>@topic.ID</td>
-                </tr>
+                <MudExpansionPanel Text="@topic.ID.ToString()">
+                    @foreach(var comment in topic.Comments)
+                    {
+                        <CommentCard Comment="@comment" />
+                    }
+                </MudExpansionPanel>
             }
-        </tbody>
-    </table>
+        </MudExpansionPanels>
+    </div>
 }
 
 @code {
     private TopicID topicID = new TopicID();
-    private IEnumerable<Topic> topics { get; set; }
+    private List<Topic> topics { get; set; }
+    private Topic fakeTopic;
 
     private async Task GetAllTopics()
     {
-        this.topics = await Http.GetFromJsonAsync<IEnumerable<Topic>>($"Topic/all");
+        this.topics = (await Http.GetFromJsonAsync<IEnumerable<Topic>>($"Topic/all")).ToList();
+        this.topics.Add(fakeTopic);
     }
 
     protected async override Task OnInitializedAsync()
     {
+        var user = new User()
+            {
+                Id = "fake",
+                NickName = "fake",
+            };
+        var comment = new Comment()
+            {
+                CreatedBy = user,
+                Content = "hello comment",
+                Replys = new Reply[]
+                {
+                new Reply
+                {
+                    Content = "fuck you",
+                    CreatedBy = user,
+                },
+                },
+            };
+        fakeTopic = new Topic
+            {
+                ID = 111,
+                Comments = new[] { comment },
+            };
         await GetAllTopics();
         await base.OnInitializedAsync();
     }

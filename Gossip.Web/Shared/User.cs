@@ -9,9 +9,9 @@ namespace Gossip.Core
 {
     public class User: IdentityUser, IEquatable<User>
     {
-        public string NickName { get; set; }
+        public string? Email { get; set; }
 
-        public string Email { get; set; }
+        public string? AvatarUrl { get; set; }
 
         public bool Equals(User? other)
         {

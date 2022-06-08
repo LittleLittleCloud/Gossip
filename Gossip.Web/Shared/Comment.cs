@@ -8,16 +8,16 @@ namespace Gossip.Core
 {
     public class Comment
     {
-        public long ID { get; set; }
+        public string ID { get; set; }
 
-        public long Timestamp { get; set; }
+        public long CreatedTimestampInSeconds { get; set; }
 
         public string Content { get; set; }
 
         public User CreatedBy { get; set; }
 
-        public IEnumerable<React> Reacts { get; set; }
+        public Topic Topic { get; set; }
 
-        public IEnumerable<Reply> Replys { get; set; }
+        public int Section { get; set; }
     }
 }

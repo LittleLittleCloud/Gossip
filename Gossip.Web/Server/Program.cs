@@ -1,3 +1,4 @@
+using Gossip.Core;
 using Gossip.Web.Server.Data;
 using Gossip.Web.Server.Models;
 using Microsoft.AspNetCore.Authentication;
@@ -7,24 +8,22 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-var defaultConnection = builder.Configuration.GetConnectionString("DefaultConnection");
 var topicConnection = builder.Configuration.GetConnectionString("TopicDBConnection");
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(defaultConnection));
-builder.Services.AddDbContext<TopicContext>(options => options.UseSqlServer(topicConnection));
+builder.Services.AddDbContext<GossipContext>(options => options.UseSqlServer(topicConnection));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
-    .AddEntityFrameworkStores<ApplicationDbContext>();
+builder.Services.AddDefaultIdentity<User>(options => options.SignIn.RequireConfirmedAccount = true)
+    .AddEntityFrameworkStores<GossipContext>();
 
 builder.Services.AddIdentityServer()
-    .AddApiAuthorization<ApplicationUser, ApplicationDbContext>();
+    .AddApiAuthorization<User, GossipContext>();
 
 builder.Services.AddAuthentication()
     .AddIdentityServerJwt();
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
@@ -33,6 +32,8 @@ if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
     app.UseWebAssemblyDebugging();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 else
 {

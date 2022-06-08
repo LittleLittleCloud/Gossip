@@ -6,14 +6,16 @@ using System.Threading.Tasks;
 
 namespace Gossip.Core
 {
-    public class React
+    public class Like
     {
         public long ID { get; set; }
 
-        public long TimeStamp { get; set; }
+        public long CreatedTimestampInSeconds { get; set; }
 
-        public bool IsThumbUp { get; set; }
+        public bool IsLike { get; set; }
 
         public User CreatedBy { get; set; }
+
+        public Comment Comment { get; set; }
     }
 }
