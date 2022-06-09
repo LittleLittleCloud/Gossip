@@ -186,7 +186,7 @@ namespace Gossip.Web.Server.Controllers
             return this.Ok("not exist");
         }
 
-        [HttpPost]
+        [HttpGet]
         [Route("upvote/count")]
         public async Task<IActionResult> CountUpvoteAsync(long commentId)
         {
